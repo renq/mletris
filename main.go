@@ -14,13 +14,10 @@ const (
 	ticksPerSecond = 60
 	screenWidth = 640
 	screenHeight = 480
-	ROWS = 24
-	COLS = 10
-	TILE_SIZE = 9
+	rows = 24
+	cols = 10
+	tileSize = 9
 )
-
-
-
 
 type Game struct{
 	backgroundColor color.Color
@@ -30,13 +27,13 @@ type Game struct{
 func NewGame() *Game {
 	return &Game{
 		backgroundColor: color.RGBA{0x3e, 0x12, 0x2d, 0xff},
-		board: NewBoard(),
+		board: NewBoard(rows, cols, ticksPerSecond),
 	}
 }
 
 var (
-	boardImage      = ebiten.NewImage(COLS * TILE_SIZE, ROWS * TILE_SIZE)
-	tileImage       = ebiten.NewImage(TILE_SIZE - 1, TILE_SIZE - 1)
+	boardImage = ebiten.NewImage(cols * tileSize, rows * tileSize)
+	tileImage  = ebiten.NewImage(tileSize - 1, tileSize - 1)
 )
 
 // Update proceeds the game state.
@@ -75,21 +72,21 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	board := g.board
 
 	boardImage.Fill(board.backgroundColor)
-	vector.StrokeLine(boardImage, 0, 0, 0, TILE_SIZE * ROWS, 1, board.frameColor, true)
-	vector.StrokeLine(boardImage, 0, 0, TILE_SIZE * COLS, 0, 1, board.frameColor, true)
-	vector.StrokeLine(boardImage, TILE_SIZE * COLS, 0, TILE_SIZE * COLS, TILE_SIZE * ROWS, 1, board.frameColor, true)
-	vector.StrokeLine(boardImage, 0, TILE_SIZE * ROWS, TILE_SIZE * COLS, TILE_SIZE * ROWS, 1, board.frameColor, true)
+	vector.StrokeLine(boardImage, 0, 0, 0, tileSize * rows, 1, board.frameColor, true)
+	vector.StrokeLine(boardImage, 0, 0, tileSize * cols, 0, 1, board.frameColor, true)
+	vector.StrokeLine(boardImage, tileSize * cols, 0, tileSize * cols, tileSize * rows, 1, board.frameColor, true)
+	vector.StrokeLine(boardImage, 0, tileSize * rows, tileSize * cols, tileSize * rows, 1, board.frameColor, true)
 
 	// Tiles
-	for y := 0; y < ROWS; y++ {
-		for x := 0; x < COLS; x++ {
+	for y := 0; y < rows; y++ {
+		for x := 0; x < cols; x++ {
 			op := &ebiten.DrawImageOptions{}
 			if (board.field[y][x] == nil) {
 				continue
 			}
 			tileImage.Fill(board.field[y][x])
 			
-			op.GeoM.Translate(float64(x*TILE_SIZE) + TILE_SIZE/5, float64(y*TILE_SIZE) + TILE_SIZE/5)
+			op.GeoM.Translate(float64(x*tileSize) + tileSize/5, float64(y*tileSize) + tileSize/5)
 			boardImage.DrawImage(tileImage, op)
 		}
 	}
@@ -99,8 +96,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		op := &ebiten.DrawImageOptions{}
 		tileImage.Fill(tile.color)
 		op.GeoM.Translate(
-			board.currentPiece.x * TILE_SIZE + float64(tile.x * TILE_SIZE) + TILE_SIZE/5, 
-			board.currentPiece.y * TILE_SIZE + float64(tile.y * TILE_SIZE) + TILE_SIZE/5,
+			board.currentPiece.x * tileSize + float64(tile.x * tileSize) + tileSize/5, 
+			board.currentPiece.y * tileSize + float64(tile.y * tileSize) + tileSize/5,
 		)
 		boardImage.DrawImage(tileImage, op)
 	}

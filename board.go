@@ -6,7 +6,16 @@ import (
 	"math/rand"
 )
 
-type Field [ROWS][COLS]color.Color
+type Field [][]color.Color
+
+func createField(rows int, cols int) Field{
+	matrix := make(Field, rows)
+	for i := range matrix {
+		matrix[i] = make([]color.Color, cols)
+	}
+
+	return matrix
+}
 
 type Tile struct{
 	x int
@@ -27,19 +36,22 @@ type FallingPiece struct{
 
 
 type Board struct{
-	backgroundColor color.Color
+	backgroundColor color.Color // consider moving it away from this struct
 	tickNumber int
+	ticksPerSecond int
 	frameColor color.Color
-	field *Field
+	field Field
 	currentPiece *FallingPiece
 	tiles [2]Piece
 }
 
-func NewBoard() *Board {
+func NewBoard(rows int, cols int, ticksPerSecond int) *Board {
 	b := &Board{
-		backgroundColor: color.RGBA{0x3e, 0x22, 0x2d, 0xff},
-		frameColor: color.RGBA{0xbb, 0xad, 0xa0, 0xff},
-		field: &Field{},
+		backgroundColor: color.RGBA{0x3e, 0x22, 0x2d, 0xff}, // TODO move it from here
+		frameColor: color.RGBA{0xbb, 0xad, 0xa0, 0xff}, // TODO move it from here
+
+		ticksPerSecond: ticksPerSecond,
+		field: createField(rows, cols),
 		tiles: [2]Piece{
 			Piece{
 				tiles: []Tile{
@@ -63,7 +75,7 @@ func NewBoard() *Board {
 func (b *Board) Tick() {
 	b.tickNumber++
 	
-	if b.tickNumber >= ticksPerSecond {
+	if b.tickNumber >= b.ticksPerSecond {
 		b.MoveDown()
     }
 }
@@ -88,8 +100,8 @@ func (b *Board) MoveLeft() bool {
 
 func (b *Board) MoveDown() bool {
 	b.tickNumber = 0
-	if (b.collisionDetected(b.currentPiece)) {
-		b.addToBoard(b.currentPiece)
+	if (b.collisionDetected()) {
+		b.addToBoard()
 		b.currentPiece = b.newPiece()
 
 		return true
@@ -102,12 +114,12 @@ func (b *Board) MoveDown() bool {
 
 func (b *Board) Fall() {
 	fmt.Printf("Move down\n")
-	for !b.collisionDetected(b.currentPiece) {
+	for !b.collisionDetected() {
 		b.currentPiece.y += 1.0
 	}
 	fmt.Printf("Moved down y = %d\n", int(b.currentPiece.y))
 
-	b.addToBoard(b.currentPiece)
+	b.addToBoard()
 	b.currentPiece = b.newPiece()
 	b.tickNumber = 0
 }
@@ -125,7 +137,7 @@ func (b *Board) canMove(direction int) bool {
 	for _, tile := range b.currentPiece.piece.tiles {
 		newX := int(b.currentPiece.x) + tile.x + direction
 
-		if newX < 0 || newX >= COLS {
+		if newX < 0 || newX >= cols {
 			return false
 		}
 
@@ -137,15 +149,15 @@ func (b *Board) canMove(direction int) bool {
 	return true
 }
 
-func (b *Board) collisionDetected(piece *FallingPiece) bool {
-	for _, tile := range piece.piece.tiles {
-		newY := int(piece.y) + tile.y + 1
+func (b *Board) collisionDetected() bool {
+	for _, tile := range b.currentPiece.piece.tiles {
+		newY := int(b.currentPiece.y) + tile.y + 1
 
-		if newY >= ROWS {
+		if newY >= rows {
 			return true
 		}
 
-		if (b.field[newY][int(piece.x) + tile.x] != nil) {
+		if (b.field[newY][int(b.currentPiece.x) + tile.x] != nil) {
 			return true
 		}
 	}
@@ -153,19 +165,19 @@ func (b *Board) collisionDetected(piece *FallingPiece) bool {
 	return false
 }
 
-func (b *Board) addToBoard(piece *FallingPiece) {
+func (b *Board) addToBoard() {
 	// Add to board
-	for _, tile := range piece.piece.tiles {
-		newY := int(piece.y) + tile.y
+	for _, tile := range b.currentPiece.piece.tiles {
+		newY := int(b.currentPiece.y) + tile.y
 
-		b.field[newY][int(piece.x) + tile.x] = tile.color
+		b.field[newY][int(b.currentPiece.x) + tile.x] = tile.color
 	}
 
 	// Try to clean lines
-	for y := 0; y < ROWS; y++ {
+	for y := 0; y < rows; y++ {
 		skip := false
 		fmt.Printf("Check line y = %d\n", y)
-		for x := 0; x < COLS; x++ {
+		for x := 0; x < cols; x++ {
 			if (b.field[y][x] == nil) {
 				skip = true
 				break
@@ -180,12 +192,12 @@ func (b *Board) addToBoard(piece *FallingPiece) {
 
 		// Clear line
 		for ty := y; ty > 0; ty-- {
-			for x := 0; x < COLS; x++ {
+			for x := 0; x < cols; x++ {
 				b.field[ty][x] = b.field[ty-1][x]
 			}
 		}
 		// Clear top line
-		for x := 0; x < COLS; x++ {
+		for x := 0; x < cols; x++ {
 			b.field[0][x] = nil
 		}
 	}
