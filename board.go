@@ -49,6 +49,7 @@ func (fp *FallingPiece) getTiles() []Tile {
 type Board struct{
 	backgroundColor color.Color // consider moving it away from this struct
 	paused bool
+	gameOver bool
 	tickNumber int
 	ticksPerSecond int
 	frameColor color.Color
@@ -77,7 +78,7 @@ func (b *Board) TogglePause() {
 }
 
 func (b *Board) Tick() {
-	if (b.paused) {
+	if b.isStopped() {
 		return
 	}
 
@@ -89,7 +90,7 @@ func (b *Board) Tick() {
 }
 
 func (b *Board) MoveRight() {
-	if (b.paused) {
+	if b.isStopped() {
 		return
 	}
 
@@ -99,7 +100,7 @@ func (b *Board) MoveRight() {
 }
 
 func (b *Board) MoveLeft() {
-	if (b.paused) {
+	if b.isStopped() {
 		return
 	}
 
@@ -109,7 +110,7 @@ func (b *Board) MoveLeft() {
 }
 
 func (b *Board) MoveDown() {
-	if (b.paused) {
+	if b.isStopped() {
 		return
 	}
 
@@ -123,7 +124,7 @@ func (b *Board) MoveDown() {
 }
 
 func (b *Board) Fall() {
-	if (b.paused) {
+	if b.isStopped() {
 		return
 	}
 
@@ -137,7 +138,7 @@ func (b *Board) Fall() {
 }
 
 func (b *Board) Rotate() {
-	if (b.paused) {
+	if b.isStopped() {
 		return
 	}
 
@@ -169,13 +170,23 @@ func (b *Board) Rotate() {
 	b.currentPiece = &rotated
 }
 
+func (b *Board) isStopped() bool {
+	return b.paused != false || b.gameOver == true
+}
+
 func (b *Board) newPiece() *FallingPiece {
 	id := rand.Intn(len(b.tiles))
-	return &FallingPiece{
+	piece := &FallingPiece{
 		piece: b.tiles[id],
 		x: 4.,
 		y: 1.,
 	}
+
+	if (b.collisionDetected(piece)) {
+		b.gameOver = true
+	}
+
+	return piece
 }
 
 // TODO try to merge canMove and collisionDetected. They are very similar.

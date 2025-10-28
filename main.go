@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	_ "embed"
 	"image/color"
 	"log"
 
@@ -27,9 +26,6 @@ type Game struct{
 	backgroundColor color.Color
 	board *Board
 }
-
-//go:embed assets/fonts/PressStart2P-Regular.ttf
-var fontData []byte
 
 var (
 	mplusFaceSource *text.GoTextFaceSource
@@ -166,6 +162,27 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			text.Draw(screen, textString, &text.GoTextFace{
 				Source: mplusFaceSource,
 				Size:   24,
+			}, op)
+		}
+
+		// Game over overlay
+		if (board.gameOver) {
+			textString := "Game over"
+
+			op := &text.DrawOptions{}
+			op.GeoM.Translate(100, 100)
+			op.ColorScale.ScaleWithColor(color.White)
+
+			text.Draw(screen, textString, &text.GoTextFace{
+				Source: mplusFaceSource,
+				Size:   24,
+			}, op)
+
+
+			op.GeoM.Translate(0, 30)
+			text.Draw(screen, "[enter] to start a new game", &text.GoTextFace{
+				Source: mplusFaceSource,
+				Size:   12,
 			}, op)
 		}
 	}
