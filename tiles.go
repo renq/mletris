@@ -2,17 +2,9 @@ package main
 
 import "image/color"
 
+// TODO: Create variables for colors used in tiles
 func buildTiles() []Piece {
 	return []Piece{
-		// Single tile piece (for testing)
-		// Piece{
-		// 	data: [][]Tile{
-		// 		{
-		// 			Tile{x:0, y:0, color: color.RGBA{0x22, 0xff, 0x4b, 0xff}},
-		// 		},
-		// 	},
-		// },
-
 		// I piece (line)
 		Piece{
 			data: [][]Tile{

@@ -15,8 +15,8 @@ import (
 
 const (
 	ticksPerSecond = 60
-	screenWidth = 640
-	screenHeight = 480
+	screenW = 320
+	screenH = 240
 	rows = 24
 	cols = 10
 	tileSize = 9
@@ -30,6 +30,7 @@ type Game struct{
 var (
 	mplusFaceSource *text.GoTextFaceSource
 	boardImage = ebiten.NewImage(cols * tileSize, rows * tileSize)
+	nextPieceImage = ebiten.NewImage(4 * tileSize, 4 * tileSize)
 	tileImage  = ebiten.NewImage(tileSize - 1, tileSize - 1)
 )
 
@@ -89,6 +90,7 @@ func (g *Game) Update() error {
 // Draw draws the game screen.
 // Draw is called every frame (typically 1/60[s] for 60Hz display).
 func (g *Game) Draw(screen *ebiten.Image) {
+	// TODO refactor this mess! It's too big, too hard to read.
 	screen.Fill(g.backgroundColor)
 
 	if g.board == nil {
@@ -185,13 +187,30 @@ func (g *Game) Draw(screen *ebiten.Image) {
 				Size:   12,
 			}, op)
 		}
+
+		// Next piece preview
+		nextPieceImage.Fill(color.RGBA{0x20, 0x20, 0x20, 0xff})
+		
+		for _, tile := range board.pieceQueue[0].getTiles() {
+			op := &ebiten.DrawImageOptions{}
+			tileImage.Fill(tile.color)
+			op.GeoM.Translate(
+				float64((1 + tile.x) * tileSize) + tileSize/5, 
+				float64((1 + tile.y) * tileSize) + tileSize/5,
+			)
+			nextPieceImage.DrawImage(tileImage, op)
+		}
+
+		opNext := &ebiten.DrawImageOptions{}
+		opNext.GeoM.Translate(float64(screenW - (4 * tileSize) - 10), 10)
+		screen.DrawImage(nextPieceImage, opNext)
 	}
 }
 
 // Layout takes the outside size (e.g., the window size) and returns the (logical) screen size.
 // If you don't have to adjust the screen size with the outside size, just return a fixed size.
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	return 320, 240
+	return screenW, screenH
 }
 
 func main() {

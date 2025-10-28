@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"image/color"
 	"math/rand"
 )
@@ -36,7 +35,6 @@ type FallingPiece struct{
 
 func (fp FallingPiece) rotate() FallingPiece {
 	fp.state = (fp.state + 1) % len(fp.piece.data)
-	fmt.Printf("Rotated to state %d\n", fp.state)
 
 	return fp
 }
@@ -55,6 +53,7 @@ type Board struct{
 	frameColor color.Color
 	field Field
 	currentPiece *FallingPiece
+	pieceQueue []*FallingPiece
 	tiles []Piece
 }
 
@@ -66,6 +65,12 @@ func NewBoard(rows int, cols int, ticksPerSecond int) *Board {
 		ticksPerSecond: ticksPerSecond,
 		field: createField(rows, cols),
 		tiles: buildTiles(),
+	}
+
+	b.pieceQueue = []*FallingPiece{
+		b.generateRandomPiece(),
+		b.generateRandomPiece(),
+		b.generateRandomPiece(),
 	}
 
 	b.currentPiece = b.newPiece()
@@ -104,6 +109,7 @@ func (b *Board) MoveLeft() {
 		return
 	}
 
+	// TODO There is a bug here when moving a block under another block. I don't know how to reproduce it yet.
 	if b.canMove(b.currentPiece, -1) {
 		b.currentPiece.x -= 1.0
 	}
@@ -175,17 +181,26 @@ func (b *Board) isStopped() bool {
 }
 
 func (b *Board) newPiece() *FallingPiece {
+	piece := b.pieceQueue[0]
+
+	b.pieceQueue = b.pieceQueue[1:]
+	b.pieceQueue = append(b.pieceQueue, b.generateRandomPiece())
+
+	if (b.collisionDetected(piece)) {
+		b.gameOver = true
+	}
+
+	return piece
+}
+
+func (b *Board) generateRandomPiece() *FallingPiece {
 	id := rand.Intn(len(b.tiles))
 	piece := &FallingPiece{
 		piece: b.tiles[id],
 		x: 4.,
 		y: 1.,
 	}
-
-	if (b.collisionDetected(piece)) {
-		b.gameOver = true
-	}
-
+	
 	return piece
 }
 
