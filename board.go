@@ -173,10 +173,10 @@ func (b *Board) addToBoard() {
 		b.field[newY][int(b.currentPiece.x) + tile.x] = tile.color
 	}
 
-	// Try to clean lines
+	// Clean full lines
 	for y := 0; y < rows; y++ {
 		skip := false
-		fmt.Printf("Check line y = %d\n", y)
+
 		for x := 0; x < cols; x++ {
 			if (b.field[y][x] == nil) {
 				skip = true
@@ -187,18 +187,8 @@ func (b *Board) addToBoard() {
 		if skip {
 			continue
 		}
-		
-	    fmt.Printf("Clear line y = %d\n", y)
 
-		// Clear line
-		for ty := y; ty > 0; ty-- {
-			for x := 0; x < cols; x++ {
-				b.field[ty][x] = b.field[ty-1][x]
-			}
-		}
-		// Clear top line
-		for x := 0; x < cols; x++ {
-			b.field[0][x] = nil
-		}
+		b.field = append(b.field[:y], b.field[y+1:]...)
+		b.field = append([][]color.Color{make([]color.Color, cols)}, b.field...)
 	}
 }
