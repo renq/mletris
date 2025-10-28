@@ -24,15 +24,26 @@ type Tile struct{
 }
 	
 type Piece struct{
-	tiles []Tile
+	data [][]Tile
 }
 
 type FallingPiece struct{
 	piece Piece
+	state int
 	x float64
 	y float64
 }
 
+func (fp FallingPiece) rotate() FallingPiece {
+	fp.state = (fp.state + 1) % len(fp.piece.data)
+	fmt.Printf("Rotated to state %d\n", fp.state)
+
+	return fp
+}
+
+func (fp *FallingPiece) getTiles() []Tile {
+	return fp.piece.data[fp.state]
+}
 
 
 type Board struct{
@@ -42,7 +53,7 @@ type Board struct{
 	frameColor color.Color
 	field Field
 	currentPiece *FallingPiece
-	tiles [2]Piece
+	tiles []Piece
 }
 
 func NewBoard(rows int, cols int, ticksPerSecond int) *Board {
@@ -52,19 +63,7 @@ func NewBoard(rows int, cols int, ticksPerSecond int) *Board {
 
 		ticksPerSecond: ticksPerSecond,
 		field: createField(rows, cols),
-		tiles: [2]Piece{
-			Piece{
-				tiles: []Tile{
-					Tile{x:0, y:0, color: color.RGBA{0x22, 0xff, 0x4b, 0xff}},
-				},
-			},
-			Piece{
-				tiles: []Tile{
-					Tile{x:0, y:0, color: color.RGBA{0xff, 0x22, 0x4b, 0xff}},
-					Tile{x:1, y:0, color: color.RGBA{0xff, 0x22, 0x4b, 0xff}},
-				},
-			},
-		},
+		tiles: buildTiles(),
 	}
 
 	b.currentPiece = b.newPiece()
@@ -81,7 +80,7 @@ func (b *Board) Tick() {
 }
 
 func (b *Board) MoveRight() bool {
-	if b.canMove(1) {
+	if b.canMove(b.currentPiece, 1) {
 		b.currentPiece.x += 1.0
 		return true
 	}
@@ -90,7 +89,7 @@ func (b *Board) MoveRight() bool {
 }
 
 func (b *Board) MoveLeft() bool {
-	if b.canMove(-1) {
+	if b.canMove(b.currentPiece, -1) {
 		b.currentPiece.x -= 1.0
 		return true
 	}
@@ -100,8 +99,8 @@ func (b *Board) MoveLeft() bool {
 
 func (b *Board) MoveDown() bool {
 	b.tickNumber = 0
-	if (b.collisionDetected()) {
-		b.addToBoard()
+	if (b.collisionDetected(b.currentPiece)) {
+		b.addCurrentPieceToTheBoard()
 		b.currentPiece = b.newPiece()
 
 		return true
@@ -113,15 +112,42 @@ func (b *Board) MoveDown() bool {
 }
 
 func (b *Board) Fall() {
-	fmt.Printf("Move down\n")
-	for !b.collisionDetected() {
+	for !b.collisionDetected(b.currentPiece) {
 		b.currentPiece.y += 1.0
 	}
-	fmt.Printf("Moved down y = %d\n", int(b.currentPiece.y))
-
-	b.addToBoard()
+	
+	b.addCurrentPieceToTheBoard()
 	b.currentPiece = b.newPiece()
 	b.tickNumber = 0
+}
+
+func (b *Board) Rotate() {
+	// TODO check for collisions
+	rotated := b.currentPiece.rotate()
+
+	minX := cols - 1
+	maxX := 0
+
+	// wall kick check
+	for _, tile := range rotated.getTiles() {
+		minX = min(minX, int(rotated.x) + tile.x)
+		maxX = max(maxX, int(rotated.x) + tile.x)
+	}
+
+	if minX < 0 {
+		rotated.x += float64(-minX)
+	}
+
+	if maxX >= cols {
+		rotated.x -= float64(maxX - (cols - 1))
+	}	
+
+	// final collision check
+	if (b.collisionDetected(&rotated)) {
+		return
+	}
+
+	b.currentPiece = &rotated
 }
 
 func (b *Board) newPiece() *FallingPiece {
@@ -133,15 +159,16 @@ func (b *Board) newPiece() *FallingPiece {
 	}
 }
 
-func (b *Board) canMove(direction int) bool {
-	for _, tile := range b.currentPiece.piece.tiles {
-		newX := int(b.currentPiece.x) + tile.x + direction
+// TODO try to merge canMove and collisionDetected. They are very similar.
+func (b *Board) canMove(piece *FallingPiece, direction int) bool {
+	for _, tile := range piece.getTiles() {
+		newX := int(piece.x) + tile.x + direction
 
 		if newX < 0 || newX >= cols {
 			return false
 		}
 
-		if (b.field[int(b.currentPiece.y)][newX] != nil) {
+		if (b.field[int(piece.y)][newX] != nil) {
 			return false
 		}
 	}
@@ -149,15 +176,15 @@ func (b *Board) canMove(direction int) bool {
 	return true
 }
 
-func (b *Board) collisionDetected() bool {
-	for _, tile := range b.currentPiece.piece.tiles {
-		newY := int(b.currentPiece.y) + tile.y + 1
+func (b *Board) collisionDetected(piece *FallingPiece) bool {
+	for _, tile := range piece.getTiles() {
+		newY := int(piece.y) + tile.y + 1
 
 		if newY >= rows {
 			return true
 		}
 
-		if (b.field[newY][int(b.currentPiece.x) + tile.x] != nil) {
+		if (b.field[newY][int(piece.x) + tile.x] != nil) {
 			return true
 		}
 	}
@@ -165,9 +192,9 @@ func (b *Board) collisionDetected() bool {
 	return false
 }
 
-func (b *Board) addToBoard() {
+func (b *Board) addCurrentPieceToTheBoard() {
 	// Add to board
-	for _, tile := range b.currentPiece.piece.tiles {
+	for _, tile := range b.currentPiece.getTiles() {
 		newY := int(b.currentPiece.y) + tile.y
 
 		b.field[newY][int(b.currentPiece.x) + tile.x] = tile.color

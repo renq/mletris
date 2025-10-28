@@ -43,11 +43,11 @@ func (g *Game) Update() error {
 
 	b.Tick()
 
-	if inpututil.IsKeyJustPressed(ebiten.KeyArrowRight) {
+	if inpututil.IsKeyJustPressed(ebiten.KeyArrowRight) || inpututil.IsKeyJustPressed(ebiten.KeyD) {
 		b.MoveRight()
 	}
 	
-	if inpututil.IsKeyJustPressed(ebiten.KeyArrowLeft) {
+	if inpututil.IsKeyJustPressed(ebiten.KeyArrowLeft) || inpututil.IsKeyJustPressed(ebiten.KeyA) {
 		b.MoveLeft()
 	}
 
@@ -55,8 +55,12 @@ func (g *Game) Update() error {
 		b.Fall()
 	}
 
-	if inpututil.IsKeyJustPressed(ebiten.KeyArrowDown) {
+	if inpututil.IsKeyJustPressed(ebiten.KeyArrowDown) || inpututil.IsKeyJustPressed(ebiten.KeyS) {
 		b.MoveDown()
+	}
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyArrowUp) || inpututil.IsKeyJustPressed(ebiten.KeyW) {
+		b.Rotate()
 	}
 
 	return nil
@@ -92,7 +96,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 
 	// Current piece
-	for _, tile := range board.currentPiece.piece.tiles {
+	for _, tile := range board.currentPiece.getTiles() {
 		op := &ebiten.DrawImageOptions{}
 		tileImage.Fill(tile.color)
 		op.GeoM.Translate(
@@ -119,7 +123,7 @@ func main() {
 	game := NewGame()
 
     // Specify the window size as you like. Here, a doubled size is specified.
-    ebiten.SetWindowSize(800, 600)
+    ebiten.SetWindowSize(1024, 768)
     ebiten.SetWindowTitle("Mletris")
     // Call ebiten.RunGame to start your game loop.
     if err := ebiten.RunGame(game); err != nil {
