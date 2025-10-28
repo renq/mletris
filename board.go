@@ -48,6 +48,7 @@ func (fp *FallingPiece) getTiles() []Tile {
 
 type Board struct{
 	backgroundColor color.Color // consider moving it away from this struct
+	paused bool
 	tickNumber int
 	ticksPerSecond int
 	frameColor color.Color
@@ -71,7 +72,15 @@ func NewBoard(rows int, cols int, ticksPerSecond int) *Board {
 	return b
 }
 
+func (b *Board) TogglePause() {
+	b.paused = !b.paused
+}
+
 func (b *Board) Tick() {
+	if (b.paused) {
+		return
+	}
+
 	b.tickNumber++
 	
 	if b.tickNumber >= b.ticksPerSecond {
@@ -79,49 +88,59 @@ func (b *Board) Tick() {
     }
 }
 
-func (b *Board) MoveRight() bool {
+func (b *Board) MoveRight() {
+	if (b.paused) {
+		return
+	}
+
 	if b.canMove(b.currentPiece, 1) {
 		b.currentPiece.x += 1.0
-		return true
 	}
-	
-	return false
 }
 
-func (b *Board) MoveLeft() bool {
+func (b *Board) MoveLeft() {
+	if (b.paused) {
+		return
+	}
+
 	if b.canMove(b.currentPiece, -1) {
 		b.currentPiece.x -= 1.0
-		return true
 	}
-	
-	return false
 }
 
-func (b *Board) MoveDown() bool {
+func (b *Board) MoveDown() {
+	if (b.paused) {
+		return
+	}
+
 	b.tickNumber = 0
 	if (b.collisionDetected(b.currentPiece)) {
 		b.addCurrentPieceToTheBoard()
 		b.currentPiece = b.newPiece()
-
-		return true
 	}
 
 	b.currentPiece.y += 1.0
-
-	return false
 }
 
 func (b *Board) Fall() {
+	if (b.paused) {
+		return
+	}
+
 	for !b.collisionDetected(b.currentPiece) {
 		b.currentPiece.y += 1.0
 	}
-	
+
 	b.addCurrentPieceToTheBoard()
 	b.currentPiece = b.newPiece()
 	b.tickNumber = 0
 }
 
 func (b *Board) Rotate() {
+	if (b.paused) {
+		return
+	}
+
 	// TODO check for collisions
 	rotated := b.currentPiece.rotate()
 

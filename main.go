@@ -1,13 +1,17 @@
 package main
 
 import (
-	"log"
-
+	"bytes"
+	_ "embed"
 	"image/color"
+	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
+
+	"github.com/hajimehoshi/ebiten/v2/examples/resources/fonts"
 )
 
 const (
@@ -24,43 +28,63 @@ type Game struct{
 	board *Board
 }
 
-func NewGame() *Game {
-	return &Game{
-		backgroundColor: color.RGBA{0x3e, 0x12, 0x2d, 0xff},
-		board: NewBoard(rows, cols, ticksPerSecond),
-	}
-}
+//go:embed assets/fonts/PressStart2P-Regular.ttf
+var fontData []byte
 
 var (
+	mplusFaceSource *text.GoTextFaceSource
 	boardImage = ebiten.NewImage(cols * tileSize, rows * tileSize)
 	tileImage  = ebiten.NewImage(tileSize - 1, tileSize - 1)
 )
 
+func NewGame() *Game {
+	s, err := text.NewGoTextFaceSource(bytes.NewReader(fonts.MPlus1pRegular_ttf))
+	if err != nil {
+		log.Fatal(err)
+	}
+	mplusFaceSource = s
+
+	return &Game{
+		backgroundColor: color.RGBA{0x3e, 0x12, 0x2d, 0xff},
+	}
+}
+
 // Update proceeds the game state.
 // Update is called every tick (1/60 [s] by default).
 func (g *Game) Update() error {
-	b := g.board
-
-	b.Tick()
-
-	if inpututil.IsKeyJustPressed(ebiten.KeyArrowRight) || inpututil.IsKeyJustPressed(ebiten.KeyD) {
-		b.MoveRight()
-	}
 	
-	if inpututil.IsKeyJustPressed(ebiten.KeyArrowLeft) || inpututil.IsKeyJustPressed(ebiten.KeyA) {
-		b.MoveLeft()
+	if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
+		g.board = NewBoard(rows, cols, ticksPerSecond)
 	}
 
-	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
-		b.Fall()
-	}
+	if g.board != nil {
+		b := g.board
 
-	if inpututil.IsKeyJustPressed(ebiten.KeyArrowDown) || inpututil.IsKeyJustPressed(ebiten.KeyS) {
-		b.MoveDown()
-	}
+		b.Tick()
 
-	if inpututil.IsKeyJustPressed(ebiten.KeyArrowUp) || inpututil.IsKeyJustPressed(ebiten.KeyW) {
-		b.Rotate()
+		if inpututil.IsKeyJustPressed(ebiten.KeyP) {
+			b.TogglePause()
+		}
+
+		if inpututil.IsKeyJustPressed(ebiten.KeyArrowRight) || inpututil.IsKeyJustPressed(ebiten.KeyD) {
+			b.MoveRight()
+		}
+		
+		if inpututil.IsKeyJustPressed(ebiten.KeyArrowLeft) || inpututil.IsKeyJustPressed(ebiten.KeyA) {
+			b.MoveLeft()
+		}
+
+		if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
+			b.Fall()
+		}
+
+		if inpututil.IsKeyJustPressed(ebiten.KeyArrowDown) || inpututil.IsKeyJustPressed(ebiten.KeyS) {
+			b.MoveDown()
+		}
+
+		if inpututil.IsKeyJustPressed(ebiten.KeyArrowUp) || inpututil.IsKeyJustPressed(ebiten.KeyW) {
+			b.Rotate()
+		}
 	}
 
 	return nil
@@ -71,46 +95,80 @@ func (g *Game) Update() error {
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(g.backgroundColor)
 
-	// Board drawing - start
-	// Frame
-	board := g.board
+	if g.board == nil {
+		// The text you want to draw
+		textString := "Press [Enter] to Start"
 
-	boardImage.Fill(board.backgroundColor)
-	vector.StrokeLine(boardImage, 0, 0, 0, tileSize * rows, 1, board.frameColor, true)
-	vector.StrokeLine(boardImage, 0, 0, tileSize * cols, 0, 1, board.frameColor, true)
-	vector.StrokeLine(boardImage, tileSize * cols, 0, tileSize * cols, tileSize * rows, 1, board.frameColor, true)
-	vector.StrokeLine(boardImage, 0, tileSize * rows, tileSize * cols, tileSize * rows, 1, board.frameColor, true)
+		// Options for drawing (position, color, etc.)
+		op := &text.DrawOptions{}
+		op.GeoM.Translate(50, 50) // X=50, Y=50 position (top-left of text bounds, roughly)
+		op.ColorScale.ScaleWithColor(color.White)
 
-	// Tiles
-	for y := 0; y < rows; y++ {
-		for x := 0; x < cols; x++ {
-			op := &ebiten.DrawImageOptions{}
-			if (board.field[y][x] == nil) {
-				continue
+		// Draw the text using the source and size defined earlier
+		text.Draw(screen, textString, &text.GoTextFace{
+			Source: mplusFaceSource,
+			Size:   20,
+		}, op)
+	}
+
+	if g.board != nil {
+		// Board drawing - start	
+		// Frame
+		board := g.board
+
+		boardImage.Fill(board.backgroundColor)
+		vector.StrokeLine(boardImage, 0, 0, 0, tileSize * rows, 1, board.frameColor, true)
+		vector.StrokeLine(boardImage, 0, 0, tileSize * cols, 0, 1, board.frameColor, true)
+		vector.StrokeLine(boardImage, tileSize * cols, 0, tileSize * cols, tileSize * rows, 1, board.frameColor, true)
+		vector.StrokeLine(boardImage, 0, tileSize * rows, tileSize * cols, tileSize * rows, 1, board.frameColor, true)
+
+		// Tiles
+		for y := 0; y < rows; y++ {
+			for x := 0; x < cols; x++ {
+				op := &ebiten.DrawImageOptions{}
+				if (board.field[y][x] == nil) {
+					continue
+				}
+				tileImage.Fill(board.field[y][x])
+				
+				op.GeoM.Translate(float64(x*tileSize) + tileSize/5, float64(y*tileSize) + tileSize/5)
+				boardImage.DrawImage(tileImage, op)
 			}
-			tileImage.Fill(board.field[y][x])
-			
-			op.GeoM.Translate(float64(x*tileSize) + tileSize/5, float64(y*tileSize) + tileSize/5)
+		}
+
+		// Current piece
+		for _, tile := range board.currentPiece.getTiles() {
+			op := &ebiten.DrawImageOptions{}
+			tileImage.Fill(tile.color)
+			op.GeoM.Translate(
+				board.currentPiece.x * tileSize + float64(tile.x * tileSize) + tileSize/5, 
+				board.currentPiece.y * tileSize + float64(tile.y * tileSize) + tileSize/5,
+			)
 			boardImage.DrawImage(tileImage, op)
 		}
-	}
 
-	// Current piece
-	for _, tile := range board.currentPiece.getTiles() {
+		// Board drawing - end
+
+		
+		// Draw board image to screen
 		op := &ebiten.DrawImageOptions{}
-		tileImage.Fill(tile.color)
-		op.GeoM.Translate(
-			board.currentPiece.x * tileSize + float64(tile.x * tileSize) + tileSize/5, 
-			board.currentPiece.y * tileSize + float64(tile.y * tileSize) + tileSize/5,
-		)
-		boardImage.DrawImage(tileImage, op)
-	}
-	// Board drawing - end
+		op.GeoM.Translate(10, 10)
+		screen.DrawImage(boardImage, op)
 
-	// Draw board image to screen
-	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(10, 10)
-	screen.DrawImage(boardImage, op)
+		// Pause overlay
+		if (board.paused) {
+			textString := "Paused"
+
+			op := &text.DrawOptions{}
+			op.GeoM.Translate(100, 100)
+			op.ColorScale.ScaleWithColor(color.White)
+
+			text.Draw(screen, textString, &text.GoTextFace{
+				Source: mplusFaceSource,
+				Size:   24,
+			}, op)
+		}
+	}
 }
 
 // Layout takes the outside size (e.g., the window size) and returns the (logical) screen size.
@@ -122,10 +180,9 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 func main() {
 	game := NewGame()
 
-    // Specify the window size as you like. Here, a doubled size is specified.
     ebiten.SetWindowSize(1024, 768)
     ebiten.SetWindowTitle("Mletris")
-    // Call ebiten.RunGame to start your game loop.
+
     if err := ebiten.RunGame(game); err != nil {
         log.Fatal(err)
     }
