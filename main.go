@@ -15,6 +15,8 @@ import (
 
 const (
 	ticksPerSecond = 60
+	pressDelayTicks = ticksPerSecond / 6
+	pressRepeatIntervalTicks = ticksPerSecond / 30
 	screenW = 320
 	screenH = 240
 	rows = 24
@@ -46,6 +48,12 @@ func NewGame() *Game {
 	}
 }
 
+func keyPressAndMove(key ebiten.Key) bool {
+	return inpututil.IsKeyJustPressed(key) || 
+		inpututil.KeyPressDuration(key) > pressDelayTicks && 
+		inpututil.KeyPressDuration(key) % pressRepeatIntervalTicks == 0
+}
+
 // Update proceeds the game state.
 // Update is called every tick (1/60 [s] by default).
 func (g *Game) Update() error {
@@ -57,30 +65,31 @@ func (g *Game) Update() error {
 	if g.board != nil {
 		b := g.board
 
-		b.Tick()
 
-		if inpututil.IsKeyJustPressed(ebiten.KeyP) {
-			b.TogglePause()
+		b.Tick()
+		
+		if keyPressAndMove(ebiten.KeyArrowLeft) || keyPressAndMove(ebiten.KeyA) {
+			b.MoveLeft()
 		}
 
-		if inpututil.IsKeyJustPressed(ebiten.KeyArrowRight) || inpututil.IsKeyJustPressed(ebiten.KeyD) {
+		if keyPressAndMove(ebiten.KeyArrowRight) || keyPressAndMove(ebiten.KeyD) {
 			b.MoveRight()
 		}
-		
-		if inpututil.IsKeyJustPressed(ebiten.KeyArrowLeft) || inpututil.IsKeyJustPressed(ebiten.KeyA) {
-			b.MoveLeft()
+
+		if keyPressAndMove(ebiten.KeyArrowDown) || keyPressAndMove(ebiten.KeyS) {
+			b.MoveDown()
 		}
 
 		if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
 			b.Fall()
 		}
 
-		if inpututil.IsKeyJustPressed(ebiten.KeyArrowDown) || inpututil.IsKeyJustPressed(ebiten.KeyS) {
-			b.MoveDown()
-		}
-
 		if inpututil.IsKeyJustPressed(ebiten.KeyArrowUp) || inpututil.IsKeyJustPressed(ebiten.KeyW) {
 			b.Rotate()
+		}
+
+		if inpututil.IsKeyJustPressed(ebiten.KeyP) {
+			b.TogglePause()
 		}
 	}
 
