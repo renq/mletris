@@ -149,7 +149,6 @@ func (b *Board) Rotate() {
 		return
 	}
 
-	// TODO check for collisions
 	rotated := b.currentPiece.rotate()
 
 	minX := cols - 1

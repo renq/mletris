@@ -26,6 +26,8 @@ const (
 
 type Game struct{
 	backgroundColor color.Color
+	boardBackgroundColor color.Color
+	boardFrameColor color.Color
 	board *Board
 }
 
@@ -45,6 +47,8 @@ func NewGame() *Game {
 
 	return &Game{
 		backgroundColor: color.RGBA{0x3e, 0x12, 0x2d, 0xff},
+		boardBackgroundColor: color.RGBA{0x3e, 0x22, 0x2d, 0xff},
+		boardFrameColor: color.RGBA{0xbb, 0xad, 0xa0, 0xff},
 	}
 }
 
@@ -119,15 +123,15 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 
 	if g.board != nil {
-		// Board drawing - start	
+		// Board drawing - start
 		// Frame
 		board := g.board
 
-		boardImage.Fill(board.backgroundColor)
-		vector.StrokeLine(boardImage, 0, 0, 0, tileSize * rows, 1, board.frameColor, true)
-		vector.StrokeLine(boardImage, 0, 0, tileSize * cols, 0, 1, board.frameColor, true)
-		vector.StrokeLine(boardImage, tileSize * cols, 0, tileSize * cols, tileSize * rows, 1, board.frameColor, true)
-		vector.StrokeLine(boardImage, 0, tileSize * rows, tileSize * cols, tileSize * rows, 1, board.frameColor, true)
+		boardImage.Fill(g.boardBackgroundColor)
+		vector.StrokeLine(boardImage, 0, 0, 0, tileSize * rows, 1, g.boardFrameColor, true)
+		vector.StrokeLine(boardImage, 0, 0, tileSize * cols, 0, 1, g.boardFrameColor, true)
+		vector.StrokeLine(boardImage, tileSize * cols, 0, tileSize * cols, tileSize * rows, 1, g.boardFrameColor, true)
+		vector.StrokeLine(boardImage, 0, tileSize * rows, tileSize * cols, tileSize * rows, 1, g.boardFrameColor, true)
 
 		// Tiles
 		for y := 0; y < rows; y++ {
