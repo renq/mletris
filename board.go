@@ -99,7 +99,7 @@ func (b *Board) MoveRight() {
 		return
 	}
 
-	if b.canMove(b.currentPiece, 1) {
+	if !b.checkCollision(b.currentPiece, 1, 0) {
 		b.currentPiece.x += 1.0
 	}
 }
@@ -110,7 +110,7 @@ func (b *Board) MoveLeft() {
 	}
 
 	// TODO There is a bug here when moving a block under another block. I don't know how to reproduce it yet.
-	if b.canMove(b.currentPiece, -1) {
+	if !b.checkCollision(b.currentPiece, -1, 0) {
 		b.currentPiece.x -= 1.0
 	}
 }
@@ -121,9 +121,10 @@ func (b *Board) MoveDown() {
 	}
 
 	b.tickNumber = 0
-	if (b.collisionDetected(b.currentPiece)) {
+	if b.checkCollision(b.currentPiece, 0, 1) {
 		b.addCurrentPieceToTheBoard()
 		b.currentPiece = b.newPiece()
+		return
 	}
 
 	b.currentPiece.y += 1.0
@@ -134,7 +135,7 @@ func (b *Board) Fall() {
 		return
 	}
 
-	for !b.collisionDetected(b.currentPiece) {
+	for !b.checkCollision(b.currentPiece, 0, 1) {
 		b.currentPiece.y += 1.0
 	}
 
@@ -169,7 +170,7 @@ func (b *Board) Rotate() {
 	}	
 
 	// final collision check
-	if (b.collisionDetected(&rotated)) {
+	if b.checkCollision(&rotated, 0, 0) {
 		return
 	}
 
@@ -177,7 +178,7 @@ func (b *Board) Rotate() {
 }
 
 func (b *Board) isStopped() bool {
-	return b.paused != false || b.gameOver == true
+	return b.paused || b.gameOver
 }
 
 func (b *Board) newPiece() *FallingPiece {
@@ -186,7 +187,7 @@ func (b *Board) newPiece() *FallingPiece {
 	b.pieceQueue = b.pieceQueue[1:]
 	b.pieceQueue = append(b.pieceQueue, b.generateRandomPiece())
 
-	if (b.collisionDetected(piece)) {
+	if b.checkCollision(piece, 0, 0) {
 		b.gameOver = true
 	}
 
@@ -204,37 +205,20 @@ func (b *Board) generateRandomPiece() *FallingPiece {
 	return piece
 }
 
-// TODO try to merge canMove and collisionDetected. They are very similar.
-func (b *Board) canMove(piece *FallingPiece, direction int) bool {
-	for _, tile := range piece.getTiles() {
-		newX := int(piece.x) + tile.x + direction
+func (b *Board) checkCollision(p *FallingPiece, xOffset, yOffset float64) bool {
+    for _, tile := range p.getTiles() {
+        newX := int(p.x+xOffset) + tile.x
+        newY := int(p.y+yOffset) + tile.y
 
-		if newX < 0 || newX >= cols {
-			return false
-		}
+        if newX < 0 || newX >= cols || newY >= rows {
+            return true
+        }
 
-		if (b.field[int(piece.y)][newX] != nil) {
-			return false
-		}
-	}
-
-	return true
-}
-
-func (b *Board) collisionDetected(piece *FallingPiece) bool {
-	for _, tile := range piece.getTiles() {
-		newY := int(piece.y) + tile.y + 1
-
-		if newY >= rows {
-			return true
-		}
-
-		if (b.field[newY][int(piece.x) + tile.x] != nil) {
-			return true
-		}
-	}
-
-	return false
+        if newY >= 0 && b.field[newY][newX] != nil {
+            return true
+        }
+    }
+    return false
 }
 
 func (b *Board) addCurrentPieceToTheBoard() {
@@ -245,22 +229,27 @@ func (b *Board) addCurrentPieceToTheBoard() {
 		b.field[newY][int(b.currentPiece.x) + tile.x] = tile.color
 	}
 
-	// Clean full lines
-	for y := 0; y < rows; y++ {
-		skip := false
-
+	// Clean full lines with the "copy-down" method
+	writeRow := rows - 1
+	for readRow := rows - 1; readRow >= 0; readRow-- {
+		isFull := true
 		for x := 0; x < cols; x++ {
-			if (b.field[y][x] == nil) {
-				skip = true
+			if b.field[readRow][x] == nil {
+				isFull = false
 				break
 			}
 		}
 
-		if skip {
-			continue
+		if !isFull {
+			if readRow != writeRow {
+				b.field[writeRow] = b.field[readRow]
+			}
+			writeRow--
 		}
+	}
 
-		b.field = append(b.field[:y], b.field[y+1:]...)
-		b.field = append([][]color.Color{make([]color.Color, cols)}, b.field...)
+	// Fill the cleared lines at the top with new empty rows
+	for y := writeRow; y >= 0; y-- {
+		b.field[y] = make([]color.Color, cols)
 	}
 }
