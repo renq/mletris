@@ -51,6 +51,7 @@ type Board struct {
 	ticksPerSecond int
 	Score          int
 	Level          int
+	totalNumberOfLinesCleared int
 	linesCleared   int
 	field          Field
 	currentPiece   *FallingPiece
@@ -88,10 +89,12 @@ func (b *Board) Tick() {
 	}
 
 	b.tickNumber++
-	
-	if b.tickNumber >= b.ticksPerSecond {
+
+	b.nextLevelIfNeeded()
+
+	if b.timeToDrop() {
 		b.MoveDown()
-    }
+	}
 }
 
 func (b *Board) MoveRight() {
@@ -250,6 +253,7 @@ func (b *Board) addCurrentPieceToTheBoard() {
 	}
 
 	if clearedCount > 0 {
+		b.totalNumberOfLinesCleared += clearedCount
 		b.addScore(clearedCount)
 		b.linesCleared += clearedCount
 		// Level up every 10 lines
@@ -265,6 +269,14 @@ func (b *Board) addCurrentPieceToTheBoard() {
 	}
 }
 
+func (b *Board) timeToDrop() bool {
+	level := b.Level
+	if level >= len(framePerDrop) {
+		level = len(framePerDrop) - 1
+	}
+	return b.tickNumber >= framePerDrop[level]
+}
+
 func (b *Board) addScore(lines int) {
 	// Standard Tetris scoring
 	baseScores := []int{0, 40, 100, 300, 1200}
@@ -274,4 +286,10 @@ func (b *Board) addScore(lines int) {
 	}
 
 	b.Score += baseScores[scoreIndex] * (b.Level + 1)
+}
+
+func (b *Board) nextLevelIfNeeded() {
+	for b.totalNumberOfLinesCleared >= (b.Level+1)*10 {
+		b.Level++
+	}
 }
