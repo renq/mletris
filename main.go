@@ -110,18 +110,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	if g.board == nil {
 		// The text you want to draw
-		textString := "Press [Enter] to Start"
-
-		// Options for drawing (position, color, etc.)
-		op := &text.DrawOptions{}
-		op.GeoM.Translate(50, 50) // X=50, Y=50 position (top-left of text bounds, roughly)
-		op.ColorScale.ScaleWithColor(color.White)
-
-		// Draw the text using the source and size defined earlier
-		text.Draw(screen, textString, &text.GoTextFace{
-			Source: mplusFaceSource,
-			Size:   20,
-		}, op)
+		renderStartGame(screen)
 	}
 
 	if g.board != nil {
@@ -129,113 +118,14 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		// Frame
 		board := g.board
 
-		boardImage.Fill(g.boardBackgroundColor)
-		vector.StrokeLine(boardImage, 0, 0, 0, tileSize * rows, 1, g.boardFrameColor, true)
-		vector.StrokeLine(boardImage, 0, 0, tileSize * cols, 0, 1, g.boardFrameColor, true)
-		vector.StrokeLine(boardImage, tileSize * cols, 0, tileSize * cols, tileSize * rows, 1, g.boardFrameColor, true)
-		vector.StrokeLine(boardImage, 0, tileSize * rows, tileSize * cols, tileSize * rows, 1, g.boardFrameColor, true)
-
-		// Tiles
-		for y := 0; y < rows; y++ {
-			for x := 0; x < cols; x++ {
-				op := &ebiten.DrawImageOptions{}
-				if (board.field[y][x] == nil) {
-					continue
-				}
-				tileImage.Fill(board.field[y][x])
-				
-				op.GeoM.Translate(float64(x*tileSize) + tileSize/5, float64(y*tileSize) + tileSize/5)
-				boardImage.DrawImage(tileImage, op)
-			}
-		}
-
-		// Current piece
-		for _, tile := range board.currentPiece.getTiles() {
-			op := &ebiten.DrawImageOptions{}
-			tileImage.Fill(tile.color)
-			op.GeoM.Translate(
-				board.currentPiece.x * tileSize + float64(tile.x * tileSize) + tileSize/5, 
-				board.currentPiece.y * tileSize + float64(tile.y * tileSize) + tileSize/5,
-			)
-			boardImage.DrawImage(tileImage, op)
-		}
-
-		// Board drawing - end
-
-		
-		// Draw board image to screen
-		op := &ebiten.DrawImageOptions{}
-		op.GeoM.Translate(10, 10)
-		screen.DrawImage(boardImage, op)
-
-		// Pause overlay
-		if (board.paused) {
-			textString := "Paused"
-
-			op := &text.DrawOptions{}
-			op.GeoM.Translate(100, 100)
-			op.ColorScale.ScaleWithColor(color.White)
-
-			text.Draw(screen, textString, &text.GoTextFace{
-				Source: mplusFaceSource,
-				Size:   24,
-			}, op)
-		}
-
-		// Game over overlay
-		if (board.gameOver) {
-			textString := "Game over"
-
-			op := &text.DrawOptions{}
-			op.GeoM.Translate(100, 100)
-			op.ColorScale.ScaleWithColor(color.White)
-
-			text.Draw(screen, textString, &text.GoTextFace{
-				Source: mplusFaceSource,
-				Size:   24,
-			}, op)
-
-
-			op.GeoM.Translate(0, 30)
-			text.Draw(screen, "[enter] to start a new game", &text.GoTextFace{
-				Source: mplusFaceSource,
-				Size:   12,
-			}, op)
-		}
+		g.renderBoard(board, screen)
 
 		// Next piece preview
-		nextPieceImage.Fill(color.RGBA{0x20, 0x20, 0x20, 0xff})
-		
-		for _, tile := range board.pieceQueue[0].getTiles() {
-			op := &ebiten.DrawImageOptions{}
-			tileImage.Fill(tile.color)
-			op.GeoM.Translate(
-				float64((1 + tile.x) * tileSize) + tileSize/5, 
-				float64((1 + tile.y) * tileSize) + tileSize/5,
-			)
-			nextPieceImage.DrawImage(tileImage, op)
-		}
-
-		opNext := &ebiten.DrawImageOptions{}
-		opNext.GeoM.Translate(float64(screenW - (4 * tileSize) - 10), 10)
-		screen.DrawImage(nextPieceImage, opNext)
+		renderNextPiece(g.board, screen)
 
 
 		// Score display
-		{
-			scoreImage.Fill(g.backgroundColor)
-			op := &text.DrawOptions{}
-
-			text.Draw(scoreImage, fmt.Sprintf("Score: %d", g.board.score), &text.GoTextFace{
-				Source: mplusFaceSource,
-				Size:   12,
-			}, op)
-
-			opScore := &ebiten.DrawImageOptions{}
-			opScore.GeoM.Translate(float64(screenW -  100), float64(screenH - 50))
-
-			screen.DrawImage(scoreImage, opScore)
-		}
+		renderScore(g, screen)
 
 	}
 }
@@ -255,4 +145,126 @@ func main() {
     if err := ebiten.RunGame(game); err != nil {
         log.Fatal(err)
     }
+}
+
+func (g *Game) renderBoard(board *Board, screen *ebiten.Image) {
+	boardImage.Fill(g.boardBackgroundColor)
+	vector.StrokeLine(boardImage, 0, 0, 0, tileSize*rows, 1, g.boardFrameColor, true)
+	vector.StrokeLine(boardImage, 0, 0, tileSize*cols, 0, 1, g.boardFrameColor, true)
+	vector.StrokeLine(boardImage, tileSize*cols, 0, tileSize*cols, tileSize*rows, 1, g.boardFrameColor, true)
+	vector.StrokeLine(boardImage, 0, tileSize*rows, tileSize*cols, tileSize*rows, 1, g.boardFrameColor, true)
+
+	// Tiles
+	for y := 0; y < rows; y++ {
+		for x := 0; x < cols; x++ {
+			op := &ebiten.DrawImageOptions{}
+			if board.field[y][x] == nil {
+				continue
+			}
+			tileImage.Fill(board.field[y][x])
+
+			op.GeoM.Translate(float64(x*tileSize)+tileSize/5, float64(y*tileSize)+tileSize/5)
+			boardImage.DrawImage(tileImage, op)
+		}
+	}
+
+	// Current piece
+	for _, tile := range board.currentPiece.getTiles() {
+		op := &ebiten.DrawImageOptions{}
+		tileImage.Fill(tile.color)
+		op.GeoM.Translate(
+			board.currentPiece.x*tileSize+float64(tile.x*tileSize)+tileSize/5,
+			board.currentPiece.y*tileSize+float64(tile.y*tileSize)+tileSize/5,
+		)
+		boardImage.DrawImage(tileImage, op)
+	}
+
+	// Board drawing - end
+
+	// Draw board image to screen
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Translate(10, 10)
+	screen.DrawImage(boardImage, op)
+
+	// Pause overlay
+	if board.paused {
+		textString := "Paused"
+
+		op := &text.DrawOptions{}
+		op.GeoM.Translate(100, 100)
+		op.ColorScale.ScaleWithColor(color.White)
+
+		text.Draw(screen, textString, &text.GoTextFace{
+			Source: mplusFaceSource,
+			Size:   24,
+		}, op)
+	}
+
+	// Game over overlay
+	if board.gameOver {
+		textString := "Game over"
+
+		op := &text.DrawOptions{}
+		op.GeoM.Translate(100, 100)
+		op.ColorScale.ScaleWithColor(color.White)
+
+		text.Draw(screen, textString, &text.GoTextFace{
+			Source: mplusFaceSource,
+			Size:   24,
+		}, op)
+
+		op.GeoM.Translate(0, 30)
+		text.Draw(screen, "[enter] to start a new game", &text.GoTextFace{
+			Source: mplusFaceSource,
+			Size:   12,
+		}, op)
+	}
+}
+
+func renderStartGame(screen *ebiten.Image) {
+	textString := "Press [Enter] to Start"
+
+	// Options for drawing (position, color, etc.)
+	op := &text.DrawOptions{}
+	op.GeoM.Translate(50, 50) // X=50, Y=50 position (top-left of text bounds, roughly)
+	op.ColorScale.ScaleWithColor(color.White)
+
+	// Draw the text using the source and size defined earlier
+	text.Draw(screen, textString, &text.GoTextFace{
+		Source: mplusFaceSource,
+		Size:   20,
+	}, op)
+}
+
+func renderNextPiece(b *Board, screen *ebiten.Image) {
+	nextPieceImage.Fill(color.RGBA{0x20, 0x20, 0x20, 0xff})
+
+	for _, tile := range b.pieceQueue[0].getTiles() {
+		op := &ebiten.DrawImageOptions{}
+		tileImage.Fill(tile.color)
+		op.GeoM.Translate(
+			float64((1+tile.x)*tileSize)+tileSize/5,
+			float64((1+tile.y)*tileSize)+tileSize/5,
+		)
+		nextPieceImage.DrawImage(tileImage, op)
+	}
+
+	opNext := &ebiten.DrawImageOptions{}
+	opNext.GeoM.Translate(float64(screenW-(4*tileSize)-10), 10)
+	screen.DrawImage(nextPieceImage, opNext)
+}
+
+func renderScore(g *Game, screen *ebiten.Image) {
+	scoreImage.Fill(g.backgroundColor)
+	op := &text.DrawOptions{}
+
+	text.Draw(scoreImage, fmt.Sprintf("Score: %d", g.board.score), &text.GoTextFace{
+		Source: mplusFaceSource,
+		Size:   12,
+	}, op)
+
+	opScore := &ebiten.DrawImageOptions{}
+	opScore.GeoM.Translate(float64(screenW-100), float64(screenH-50))
+
+	screen.DrawImage(scoreImage, opScore)
 }
