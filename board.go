@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image/color"
 	"math/rand"
 )
@@ -45,23 +46,20 @@ func (fp *FallingPiece) getTiles() []Tile {
 
 
 type Board struct{
-	backgroundColor color.Color // consider moving it away from this struct
 	paused bool
 	gameOver bool
 	tickNumber int
 	ticksPerSecond int
-	frameColor color.Color
 	field Field
 	currentPiece *FallingPiece
 	pieceQueue []*FallingPiece
 	tiles []Piece
+	level int
+	score int
 }
 
 func NewBoard(rows int, cols int, ticksPerSecond int) *Board {
 	b := &Board{
-		backgroundColor: color.RGBA{0x3e, 0x22, 0x2d, 0xff}, // TODO move it from here
-		frameColor: color.RGBA{0xbb, 0xad, 0xa0, 0xff}, // TODO move it from here
-
 		ticksPerSecond: ticksPerSecond,
 		field: createField(rows, cols),
 		tiles: buildTiles(),
@@ -228,6 +226,7 @@ func (b *Board) addCurrentPieceToTheBoard() {
 		b.field[newY][int(b.currentPiece.x) + tile.x] = tile.color
 	}
 
+	clearedLines := 0
 	// Clean full lines with the "copy-down" method
 	writeRow := rows - 1
 	for readRow := rows - 1; readRow >= 0; readRow-- {
@@ -244,11 +243,31 @@ func (b *Board) addCurrentPieceToTheBoard() {
 				b.field[writeRow] = b.field[readRow]
 			}
 			writeRow--
+		} else {
+			clearedLines++
 		}
 	}
+
+	b.addScore(clearedLines)
+
+	fmt.Printf("Cleared lines: %d, Score: %d\n", clearedLines, b.score)
 
 	// Fill the cleared lines at the top with new empty rows
 	for y := writeRow; y >= 0; y-- {
 		b.field[y] = make([]color.Color, cols)
+	}
+}
+
+func (b *Board) addScore(lines int) {
+	switch lines {
+	case 1:
+		b.score += 40 * (b.level + 1)
+	case 2:
+		b.score += 100 * (b.level + 1)
+	case 3:
+		b.score += 300 * (b.level + 1)
+	case 4:
+		b.score += 1200 * (b.level + 1)
+	default:
 	}
 }

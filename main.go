@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"image/color"
 	"log"
 
@@ -35,6 +36,7 @@ var (
 	mplusFaceSource *text.GoTextFaceSource
 	boardImage = ebiten.NewImage(cols * tileSize, rows * tileSize)
 	nextPieceImage = ebiten.NewImage(4 * tileSize, 4 * tileSize)
+	scoreImage = ebiten.NewImage(100, 50)
 	tileImage  = ebiten.NewImage(tileSize - 1, tileSize - 1)
 )
 
@@ -217,6 +219,24 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		opNext := &ebiten.DrawImageOptions{}
 		opNext.GeoM.Translate(float64(screenW - (4 * tileSize) - 10), 10)
 		screen.DrawImage(nextPieceImage, opNext)
+
+
+		// Score display
+		{
+			scoreImage.Fill(g.backgroundColor)
+			op := &text.DrawOptions{}
+
+			text.Draw(scoreImage, fmt.Sprintf("Score: %d", g.board.score), &text.GoTextFace{
+				Source: mplusFaceSource,
+				Size:   12,
+			}, op)
+
+			opScore := &ebiten.DrawImageOptions{}
+			opScore.GeoM.Translate(float64(screenW -  100), float64(screenH - 50))
+
+			screen.DrawImage(scoreImage, opScore)
+		}
+
 	}
 }
 
