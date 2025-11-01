@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"image/color"
 	"math/rand"
 )
@@ -45,24 +44,27 @@ func (fp *FallingPiece) getTiles() []Tile {
 }
 
 
-type Board struct{
-	paused bool
-	gameOver bool
-	tickNumber int
+type Board struct {
+	paused         bool
+	gameOver       bool
+	tickNumber     int
 	ticksPerSecond int
-	field Field
-	currentPiece *FallingPiece
-	pieceQueue []*FallingPiece
-	tiles []Piece
-	level int
-	score int
+	Score          int
+	Level          int
+	linesCleared   int
+	field          Field
+	currentPiece   *FallingPiece
+	pieceQueue     []*FallingPiece
+	tiles          []Piece
 }
 
 func NewBoard(rows int, cols int, ticksPerSecond int) *Board {
 	b := &Board{
 		ticksPerSecond: ticksPerSecond,
-		field: createField(rows, cols),
-		tiles: buildTiles(),
+		Level:          0,
+		linesCleared:   0,
+		field:          createField(rows, cols),
+		tiles:          buildTiles(),
 	}
 
 	b.pieceQueue = []*FallingPiece{
@@ -222,12 +224,11 @@ func (b *Board) addCurrentPieceToTheBoard() {
 	// Add to board
 	for _, tile := range b.currentPiece.getTiles() {
 		newY := int(b.currentPiece.y) + tile.y
-
-		b.field[newY][int(b.currentPiece.x) + tile.x] = tile.color
+		b.field[newY][int(b.currentPiece.x)+tile.x] = tile.color
 	}
 
-	clearedLines := 0
-	// Clean full lines with the "copy-down" method
+	// Clean full lines and count them
+	clearedCount := 0
 	writeRow := rows - 1
 	for readRow := rows - 1; readRow >= 0; readRow-- {
 		isFull := true
@@ -238,19 +239,25 @@ func (b *Board) addCurrentPieceToTheBoard() {
 			}
 		}
 
-		if !isFull {
+		if (isFull) {
+			clearedCount++
+		} else {
 			if readRow != writeRow {
 				b.field[writeRow] = b.field[readRow]
 			}
 			writeRow--
-		} else {
-			clearedLines++
 		}
 	}
 
-	b.addScore(clearedLines)
-
-	fmt.Printf("Cleared lines: %d, Score: %d\n", clearedLines, b.score)
+	if clearedCount > 0 {
+		b.addScore(clearedCount)
+		b.linesCleared += clearedCount
+		// Level up every 10 lines
+		if b.linesCleared >= 10 {
+			b.Level++
+			b.linesCleared -= 10
+		}
+	}
 
 	// Fill the cleared lines at the top with new empty rows
 	for y := writeRow; y >= 0; y-- {
@@ -259,15 +266,12 @@ func (b *Board) addCurrentPieceToTheBoard() {
 }
 
 func (b *Board) addScore(lines int) {
-	switch lines {
-	case 1:
-		b.score += 40 * (b.level + 1)
-	case 2:
-		b.score += 100 * (b.level + 1)
-	case 3:
-		b.score += 300 * (b.level + 1)
-	case 4:
-		b.score += 1200 * (b.level + 1)
-	default:
+	// Standard Tetris scoring
+	baseScores := []int{0, 40, 100, 300, 1200}
+	scoreIndex := lines
+	if scoreIndex > 4 {
+		scoreIndex = 4
 	}
+
+	b.Score += baseScores[scoreIndex] * (b.Level + 1)
 }
