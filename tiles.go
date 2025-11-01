@@ -2,210 +2,219 @@ package main
 
 import "image/color"
 
-// TODO: Create variables for colors used in tiles
+var (
+	colorI = color.RGBA{0x00, 0xff, 0xff, 0xff} // Cyan
+	colorO = color.RGBA{0xff, 0xff, 0x00, 0xff} // Yellow
+	colorT = color.RGBA{0x80, 0x00, 0xff, 0xff} // Purple
+	colorS = color.RGBA{0x00, 0xff, 0x00, 0xff} // Green
+	colorZ = color.RGBA{0xff, 0x00, 0x00, 0xff} // Red
+	colorJ = color.RGBA{0x00, 0x00, 0xff, 0xff} // Blue
+	colorL = color.RGBA{0xff, 0xa5, 0x00, 0xff} // Orange
+)
+
 func buildTiles() []Piece {
 	return []Piece{
 		// I piece (line)
-		Piece{
+		{
 			data: [][]Tile{
 				// x
 				// x
 				// x
 				// x
 				{
-					Tile{x:0, y:-1, color: color.RGBA{0x00, 0xff, 0xff, 0xff}}, // cyan
-					Tile{x:0, y:0, color: color.RGBA{0x00, 0xff, 0xff, 0xff}},
-					Tile{x:0, y:1, color: color.RGBA{0x00, 0xff, 0xff, 0xff}},
-					Tile{x:0, y:2, color: color.RGBA{0x00, 0xff, 0xff, 0xff}},
+					{x: 0, y: -1, color: colorI},
+					{x: 0, y: 0, color: colorI},
+					{x: 0, y: 1, color: colorI},
+					{x: 0, y: 2, color: colorI},
 				},
 				// xxxx
 				{
-					Tile{x:-1, y:0, color: color.RGBA{0x00, 0xff, 0xff, 0xff}},
-					Tile{x:0, y:0, color: color.RGBA{0x00, 0xff, 0xff, 0xff}},
-					Tile{x:1, y:0, color: color.RGBA{0x00, 0xff, 0xff, 0xff}},
-					Tile{x:2, y:0, color: color.RGBA{0x00, 0xff, 0xff, 0xff}},
+					{x: -1, y: 0, color: colorI},
+					{x: 0, y: 0, color: colorI},
+					{x: 1, y: 0, color: colorI},
+					{x: 2, y: 0, color: colorI},
 				},
 			},
 		},
 
 		// O piece (square)
-		Piece{
+		{
 			data: [][]Tile{
 				// xx
 				// xx
 				{
-					Tile{x:0, y:0, color: color.RGBA{0xff, 0xff, 0x00, 0xff}}, // yellow
-					Tile{x:1, y:0, color: color.RGBA{0xff, 0xff, 0x00, 0xff}},
-					Tile{x:0, y:1, color: color.RGBA{0xff, 0xff, 0x00, 0xff}},
-					Tile{x:1, y:1, color: color.RGBA{0xff, 0xff, 0x00, 0xff}},
+					{x: 0, y: 0, color: colorO},
+					{x: 1, y: 0, color: colorO},
+					{x: 0, y: 1, color: colorO},
+					{x: 1, y: 1, color: colorO},
 				},
 			},
 		},
 
 		// T piece (purple)
-		Piece{
+		{
 			data: [][]Tile{
 				//  x
 				// xxx
 				{
-					Tile{x:-1, y:0, color: color.RGBA{0x80, 0x00, 0xff, 0xff}},
-					Tile{x:0, y:0, color: color.RGBA{0x80, 0x00, 0xff, 0xff}},
-					Tile{x:1, y:0, color: color.RGBA{0x80, 0x00, 0xff, 0xff}},
-					Tile{x:0, y:-1, color: color.RGBA{0x80, 0x00, 0xff, 0xff}},
+					{x: -1, y: 0, color: colorT},
+					{x: 0, y: 0, color: colorT},
+					{x: 1, y: 0, color: colorT},
+					{x: 0, y: -1, color: colorT},
 				},
 				// x
 				// xx
 				// x
 				{
-					Tile{x:0, y:-1, color: color.RGBA{0x80, 0x00, 0xff, 0xff}},
-					Tile{x:0, y:0, color: color.RGBA{0x80, 0x00, 0xff, 0xff}},
-					Tile{x:0, y:1, color: color.RGBA{0x80, 0x00, 0xff, 0xff}},
-					Tile{x:1, y:0, color: color.RGBA{0x80, 0x00, 0xff, 0xff}},
+					{x: 0, y: -1, color: colorT},
+					{x: 0, y: 0, color: colorT},
+					{x: 0, y: 1, color: colorT},
+					{x: 1, y: 0, color: colorT},
 				},
 				// xxx
 				//  x
 				{
-					Tile{x:-1, y:0, color: color.RGBA{0x80, 0x00, 0xff, 0xff}},
-					Tile{x:0, y:0, color: color.RGBA{0x80, 0x00, 0xff, 0xff}},
-					Tile{x:1, y:0, color: color.RGBA{0x80, 0x00, 0xff, 0xff}},
-					Tile{x:0, y:1, color: color.RGBA{0x80, 0x00, 0xff, 0xff}},
+					{x: -1, y: 0, color: colorT},
+					{x: 0, y: 0, color: colorT},
+					{x: 1, y: 0, color: colorT},
+					{x: 0, y: 1, color: colorT},
 				},
 				//  x
 				// xx
 				//  x
 				{
-					Tile{x:0, y:-1, color: color.RGBA{0x80, 0x00, 0xff, 0xff}},
-					Tile{x:0, y:0, color: color.RGBA{0x80, 0x00, 0xff, 0xff}},
-					Tile{x:0, y:1, color: color.RGBA{0x80, 0x00, 0xff, 0xff}},
-					Tile{x:-1, y:0, color: color.RGBA{0x80, 0x00, 0xff, 0xff}},
+					{x: 0, y: -1, color: colorT},
+					{x: 0, y: 0, color: colorT},
+					{x: 0, y: 1, color: colorT},
+					{x: -1, y: 0, color: colorT},
 				},
 			},
 		},
 
 		// S piece (green)
-		Piece{
+		{
 			data: [][]Tile{
 				//  xx
 				// xx
 				{
-					Tile{x:0, y:0, color: color.RGBA{0x00, 0xff, 0x00, 0xff}},
-					Tile{x:1, y:0, color: color.RGBA{0x00, 0xff, 0x00, 0xff}},
-					Tile{x:-1, y:1, color: color.RGBA{0x00, 0xff, 0x00, 0xff}},
-					Tile{x:0, y:1, color: color.RGBA{0x00, 0xff, 0x00, 0xff}},
+					{x: 0, y: 0, color: colorS},
+					{x: 1, y: 0, color: colorS},
+					{x: -1, y: 1, color: colorS},
+					{x: 0, y: 1, color: colorS},
 				},
 				// x
 				// xx
 				//  x
 				{
-					Tile{x:-1, y:-1, color: color.RGBA{0x00, 0xff, 0x00, 0xff}},
-					Tile{x:-1, y:0, color: color.RGBA{0x00, 0xff, 0x00, 0xff}},
-					Tile{x:0, y:0, color: color.RGBA{0x00, 0xff, 0x00, 0xff}},
-					Tile{x:0, y:1, color: color.RGBA{0x00, 0xff, 0x00, 0xff}},
+					{x: -1, y: -1, color: colorS},
+					{x: -1, y: 0, color: colorS},
+					{x: 0, y: 0, color: colorS},
+					{x: 0, y: 1, color: colorS},
 				},
 			},
 		},
 
 		// Z piece (red)
-		Piece{
+		{
 			data: [][]Tile{
 				// xx
 				//  xx
 				{
-					Tile{x:-1, y:0, color: color.RGBA{0xff, 0x00, 0x00, 0xff}},
-					Tile{x:0, y:0, color: color.RGBA{0xff, 0x00, 0x00, 0xff}},
-					Tile{x:0, y:1, color: color.RGBA{0xff, 0x00, 0x00, 0xff}},
-					Tile{x:1, y:1, color: color.RGBA{0xff, 0x00, 0x00, 0xff}},
+					{x: -1, y: 0, color: colorZ},
+					{x: 0, y: 0, color: colorZ},
+					{x: 0, y: 1, color: colorZ},
+					{x: 1, y: 1, color: colorZ},
 				},
 				//  x
 				// xx
 				// x
 				{
-					Tile{x:1, y:-1, color: color.RGBA{0xff, 0x00, 0x00, 0xff}},
-					Tile{x:0, y:0, color: color.RGBA{0xff, 0x00, 0x00, 0xff}},
-					Tile{x:1, y:0, color: color.RGBA{0xff, 0x00, 0x00, 0xff}},
-					Tile{x:0, y:1, color: color.RGBA{0xff, 0x00, 0x00, 0xff}},
+					{x: 1, y: -1, color: colorZ},
+					{x: 0, y: 0, color: colorZ},
+					{x: 1, y: 0, color: colorZ},
+					{x: 0, y: 1, color: colorZ},
 				},
 			},
 		},
 
 		// J piece (blue)
-		Piece{
+		{
 			data: [][]Tile{
 				//  x
 				//  x
 				// xx
 				{
-					Tile{x:0, y:-1, color: color.RGBA{0x00, 0x00, 0xff, 0xff}},
-					Tile{x:0, y:0, color: color.RGBA{0x00, 0x00, 0xff, 0xff}},
-					Tile{x:0, y:1, color: color.RGBA{0x00, 0x00, 0xff, 0xff}},
-					Tile{x:-1, y:1, color: color.RGBA{0x00, 0x00, 0xff, 0xff}},
+					{x: 0, y: -1, color: colorJ},
+					{x: 0, y: 0, color: colorJ},
+					{x: 0, y: 1, color: colorJ},
+					{x: -1, y: 1, color: colorJ},
 				},
 				// x
 				// xxx
 				{
-					Tile{x:-1, y:-1, color: color.RGBA{0x00, 0x00, 0xff, 0xff}},
-					Tile{x:-1, y:0, color: color.RGBA{0x00, 0x00, 0xff, 0xff}},
-					Tile{x:0, y:0, color: color.RGBA{0x00, 0x00, 0xff, 0xff}},
-					Tile{x:1, y:0, color: color.RGBA{0x00, 0x00, 0xff, 0xff}},
+					{x: -1, y: -1, color: colorJ},
+					{x: -1, y: 0, color: colorJ},
+					{x: 0, y: 0, color: colorJ},
+					{x: 1, y: 0, color: colorJ},
 				},
 				// xx
 				// x
 				// x
 				{
-					Tile{x:0, y:-1, color: color.RGBA{0x00, 0x00, 0xff, 0xff}},
-					Tile{x:1, y:-1, color: color.RGBA{0x00, 0x00, 0xff, 0xff}},
-					Tile{x:0, y:0, color: color.RGBA{0x00, 0x00, 0xff, 0xff}},
-					Tile{x:0, y:1, color: color.RGBA{0x00, 0x00, 0xff, 0xff}},
+					{x: 0, y: -1, color: colorJ},
+					{x: 1, y: -1, color: colorJ},
+					{x: 0, y: 0, color: colorJ},
+					{x: 0, y: 1, color: colorJ},
 				},
 				// xxx
 				//   x
 				{
-					Tile{x:-1, y:0, color: color.RGBA{0x00, 0x00, 0xff, 0xff}},
-					Tile{x:0, y:0, color: color.RGBA{0x00, 0x00, 0xff, 0xff}},
-					Tile{x:1, y:0, color: color.RGBA{0x00, 0x00, 0xff, 0xff}},
-					Tile{x:1, y:1, color: color.RGBA{0x00, 0x00, 0xff, 0xff}},
+					{x: -1, y: 0, color: colorJ},
+					{x: 0, y: 0, color: colorJ},
+					{x: 1, y: 0, color: colorJ},
+					{x: 1, y: 1, color: colorJ},
 				},
 			},
 		},
 
 		// L piece (orange)
-		Piece{
+		{
 			data: [][]Tile{
 				// x
 				// x
 				// xx
 				{
-					Tile{x:0, y:-1, color: color.RGBA{0xff, 0xa5, 0x00, 0xff}},
-					Tile{x:0, y:0, color: color.RGBA{0xff, 0xa5, 0x00, 0xff}},
-					Tile{x:0, y:1, color: color.RGBA{0xff, 0xa5, 0x00, 0xff}},
-					Tile{x:1, y:1, color: color.RGBA{0xff, 0xa5, 0x00, 0xff}},
+					{x: 0, y: -1, color: colorL},
+					{x: 0, y: 0, color: colorL},
+					{x: 0, y: 1, color: colorL},
+					{x: 1, y: 1, color: colorL},
 				},
 				// xxx
 				// x
 				{
-					Tile{x:-1, y:0, color: color.RGBA{0xff, 0xa5, 0x00, 0xff}},
-					Tile{x:0, y:0, color: color.RGBA{0xff, 0xa5, 0x00, 0xff}},
-					Tile{x:1, y:0, color: color.RGBA{0xff, 0xa5, 0x00, 0xff}},
-					Tile{x:-1, y:1, color: color.RGBA{0xff, 0xa5, 0x00, 0xff}},
+					{x: -1, y: 0, color: colorL},
+					{x: 0, y: 0, color: colorL},
+					{x: 1, y: 0, color: colorL},
+					{x: -1, y: 1, color: colorL},
 				},
 				// xx
 				//  x
 				//  x
 				{
-					Tile{x:-1, y:-1, color: color.RGBA{0xff, 0xa5, 0x00, 0xff}},
-					Tile{x:0, y:-1, color: color.RGBA{0xff, 0xa5, 0x00, 0xff}},
-					Tile{x:0, y:0, color: color.RGBA{0xff, 0xa5, 0x00, 0xff}},
-					Tile{x:0, y:1, color: color.RGBA{0xff, 0xa5, 0x00, 0xff}},
+					{x: -1, y: -1, color: colorL},
+					{x: 0, y: -1, color: colorL},
+					{x: 0, y: 0, color: colorL},
+					{x: 0, y: 1, color: colorL},
 				},
 				//   x
 				// xxx
 				{
-					Tile{x:-1, y:0, color: color.RGBA{0xff, 0xa5, 0x00, 0xff}},
-					Tile{x:0, y:0, color: color.RGBA{0xff, 0xa5, 0x00, 0xff}},
-					Tile{x:1, y:0, color: color.RGBA{0xff, 0xa5, 0x00, 0xff}},
-					Tile{x:1, y:-1, color: color.RGBA{0xff, 0xa5, 0x00, 0xff}},
+					{x: -1, y: 0, color: colorL},
+					{x: 0, y: 0, color: colorL},
+					{x: 1, y: 0, color: colorL},
+					{x: 1, y: -1, color: colorL},
 				},
 			},
 		},
-	};
+	}
 }
