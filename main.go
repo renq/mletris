@@ -8,7 +8,6 @@ import (
 )
 
 const (
-	ticksPerSecond = 60
 	screenW        = 320
 	screenH        = 240
 	rows           = 24
@@ -33,7 +32,7 @@ func NewGame() *Game {
 func (g *Game) Update() error {
 	// Global input handling (creating a new game)
 	if (g.board == nil || g.board.gameOver) && inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
-		g.board = NewBoard(rows, cols, ticksPerSecond)
+		g.board = NewBoard(rows, cols)
 	}
 
 	// Delegate board-related input to the handler

@@ -48,7 +48,6 @@ type Board struct {
 	paused         bool
 	gameOver       bool
 	tickNumber     int
-	ticksPerSecond int
 	Score          int
 	Level          int
 	totalNumberOfLinesCleared int
@@ -59,9 +58,8 @@ type Board struct {
 	tiles          []Piece
 }
 
-func NewBoard(rows int, cols int, ticksPerSecond int) *Board {
+func NewBoard(rows int, cols int) *Board {
 	b := &Board{
-		ticksPerSecond: ticksPerSecond,
 		Level:          0,
 		linesCleared:   0,
 		field:          createField(rows, cols),

@@ -6,8 +6,8 @@ import (
 )
 
 const (
-	pressDelayTicks          = ticksPerSecond / 6
-	pressRepeatIntervalTicks = ticksPerSecond / 30
+	pressDelayTicks          = 10 // 1/6 of second
+	pressRepeatIntervalTicks = 2 // 1/30 of second
 )
 
 type InputHandler struct{}
