@@ -4,7 +4,7 @@ A simple Tetris clone written in Go.
 
 This repository contains a lightweight, minimal implementation of Tetris which I built as a learning project while getting familiar with the Go programming language. It's intentionally basic and serves primarily as a sandbox for experimenting with Go's syntax, concurrency primitives, and standard library. Expect rough edges and few extra features — it's a pet project, not a polished game.
 
-<!-- ![Animation placeholder](animation.gif) -->
+![Animation](http://lipek.cluster014.ovh.net/tetris.gif)
 
 ## Features
 
